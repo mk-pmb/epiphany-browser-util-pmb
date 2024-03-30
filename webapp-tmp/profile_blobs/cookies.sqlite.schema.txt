@@ -1,0 +1,14 @@
+CREATE TABLE moz_cookies (
+  id INTEGER PRIMARY KEY,
+  name TEXT,
+  value TEXT,
+  host TEXT,
+  path TEXT,
+  expiry INTEGER,
+  lastAccessed INTEGER,
+  isSecure INTEGER,
+  isHttpOnly INTEGER,
+  sameSite INTEGER
+  );
+
+/* No STAT tables available */
