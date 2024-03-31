@@ -3,6 +3,8 @@
 
 
 function epiphany_webapp_tmp () {
+  local SELFPATH="$(readlink -m -- "$BASH_SOURCE"/..)"
+
   local -A CFG=(
     # [cfgtpl]="$HOME"/.gnome2/epiphany
     [debug]="$EPHY_WEBAPP_DEBUG"
@@ -23,7 +25,7 @@ function epiphany_webapp_tmp () {
     --ephy-serial-ver ) echo "$EPHY_VER_SERIAL"; return $?;;
   esac
 
-  cd /
+  cd / || return 4$(echo E: 'Failed to chdir to root directory!?' >&2)
   local OPT=
   while [ "$#" -gt 0 ]; do
     OPT="$1"; shift
@@ -310,7 +312,14 @@ function ensure_profile_dir () {
   [ -n "$PROFILE" ] && PROFILE+='.'
   PROFILE="$(mktemp --tmpdir="${CFG[tmpdir]}" --directory "$PROFILE"XXXXXXXX)"
   [ -d "$PROFILE" ] || return 3$(
-    echo "E: cannot create profile dir: $PROFILE" >&2)
+    echo E: "cannot create profile dir: $PROFILE" >&2)
+
+  local SRC= BFN=
+  for SRC in "$SELFPATH"/profile_blobs/*.gz; do
+    BFN="$(basename -- "$SRC" .gz)"
+    gunzip <"$SRC" >"$PROFILE/$BFN" || return 3$(
+      echo E: "Cannot unpack profile blob '$BFN'" >&2)
+  done
 
   CFG['profile_was_tmp_created']=+
   install_config_template "${CFG[cfgtpl]}" || return $?
